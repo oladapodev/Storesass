@@ -16,8 +16,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/yourusername/storefront-saas-go/internal/config"
 	"github.com/yourusername/storefront-saas-go/internal/db"
+	_ "github.com/yourusername/storefront-saas-go/docs"
 	"github.com/yourusername/storefront-saas-go/internal/handler"
 	"github.com/yourusername/storefront-saas-go/internal/middleware"
 	"github.com/yourusername/storefront-saas-go/internal/repository"
@@ -71,6 +74,8 @@ func main() {
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.Port),
