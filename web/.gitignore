@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+tsconfig.node.tsbuildinfo
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+orval.config.js
+orval.config.d.ts
