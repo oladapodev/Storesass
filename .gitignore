@@ -33,6 +33,7 @@ go.work.sum
 
 # Build artifacts
 bin/
+api
 tmp/
 
 # SQLite database files
