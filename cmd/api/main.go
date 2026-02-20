@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -81,7 +82,15 @@ func main() {
 	router.StaticFile("/", "./web/dist/index.html")
 	router.Static("/assets", "./web/dist/assets")
 	router.NoRoute(func(c *gin.Context) {
-		c.File("./web/dist/index.html")
+		path := c.Request.URL.Path
+		method := c.Request.Method
+		if (method == http.MethodGet || method == http.MethodHead) &&
+			!strings.HasPrefix(path, "/api/") &&
+			!strings.HasPrefix(path, "/swagger/") {
+			c.File("./web/dist/index.html")
+			return
+		}
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 	})
 
 	srv := &http.Server{
