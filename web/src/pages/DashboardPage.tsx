@@ -1,38 +1,31 @@
-import { useQuery } from '@tanstack/react-query'
 import { Store, Package, TrendingUp, Activity } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { axiosInstance } from '@/lib/axios-client'
 import { formatPrice } from '@/lib/utils'
-import type { Store as StoreType, Product, PaginatedResponse } from '@/types/storefront'
+import { useGetStores } from '@/api/stores/stores'
+import { useGetProducts } from '@/api/products/products'
+import type { DomainStore } from '@/api/model/domainStore'
+import type { DomainProduct } from '@/api/model/domainProduct'
 
 export function DashboardPage() {
-  const { data: storesData } = useQuery({
-    queryKey: ['stores'],
-    queryFn: () =>
-      axiosInstance.get<PaginatedResponse<StoreType>>('/api/v1/stores').then((r) => r.data),
-  })
+  const { data: storesResponse } = useGetStores({})
 
-  const { data: productsData } = useQuery({
-    queryKey: ['products', 'hot'],
-    queryFn: () =>
-      axiosInstance.get<PaginatedResponse<Product>>('/api/v1/products').then((r) => r.data),
-  })
+  const { data: productsResponse } = useGetProducts({})
 
-  const stores = storesData?.data ?? []
-  const products = productsData?.data ?? []
-  const totalInventoryValue = products.reduce((sum, p) => sum + p.price * p.stock, 0)
+  const stores = (storesResponse?.data as DomainStore[]) ?? []
+  const products = (productsResponse?.data as DomainProduct[]) ?? []
+  const totalInventoryValue = products.reduce((sum, p) => sum + (p.price ?? 0) * (p.stock ?? 0), 0)
 
   const stats = [
     {
       title: 'Total Stores',
-      value: storesData?.total ?? 0,
+      value: storesResponse?.total ?? 0,
       description: 'Active storefronts',
       icon: Store,
     },
     {
       title: 'Total Products',
-      value: productsData?.total ?? 0,
+      value: productsResponse?.total ?? 0,
       description: 'Listed products',
       icon: Package,
     },
@@ -110,7 +103,7 @@ export function DashboardPage() {
                 <p className="text-sm text-muted-foreground">No products yet. Run: <code className="bg-muted px-1 rounded">make seed</code></p>
               ) : (
                 [...products]
-                  .sort((a, b) => b.price - a.price)
+                  .sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
                   .slice(0, 5)
                   .map((product) => (
                     <div key={product.id} className="flex items-center justify-between border-b pb-3 last:border-0">
@@ -118,7 +111,7 @@ export function DashboardPage() {
                         <p className="font-medium">{product.name}</p>
                         <p className="text-sm text-muted-foreground">Stock: {product.stock}</p>
                       </div>
-                      <span className="font-bold">{formatPrice(product.price)}</span>
+                      <span className="font-bold">{formatPrice(product.price ?? 0)}</span>
                     </div>
                   ))
               )}

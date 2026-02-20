@@ -1,6 +1,14 @@
 import axios, { type AxiosRequestConfig } from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+const getBaseUrl = () => {
+  try {
+    return (import.meta.env.VITE_API_URL || 'http://localhost:8080') + '/api/v1'
+  } catch (e) {
+    return 'http://localhost:8080/api/v1'
+  }
+}
+
+const BASE_URL = getBaseUrl()
 
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,

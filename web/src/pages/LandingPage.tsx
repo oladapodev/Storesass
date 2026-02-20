@@ -1,28 +1,21 @@
-import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Zap, Shield, BarChart3 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { axiosInstance } from '@/lib/axios-client'
 import { formatPrice } from '@/lib/utils'
-import type { Store, Product, PaginatedResponse } from '@/types/storefront'
+import { useGetStores } from '@/api/stores/stores'
+import { useGetProducts } from '@/api/products/products'
+import type { DomainStore } from '@/api/model/domainStore'
+import type { DomainProduct } from '@/api/model/domainProduct'
 
 export function LandingPage() {
-  const { data: storesData } = useQuery({
-    queryKey: ['stores', 'featured'],
-    queryFn: () =>
-      axiosInstance.get<PaginatedResponse<Store>>('/api/v1/stores').then((r) => r.data),
-  })
+  const { data: storesResponse } = useGetStores({})
 
-  const { data: productsData } = useQuery({
-    queryKey: ['products', 'hot'],
-    queryFn: () =>
-      axiosInstance.get<PaginatedResponse<Product>>('/api/v1/products').then((r) => r.data),
-  })
+  const { data: productsData } = useGetProducts({})
 
-  const stores = storesData?.data ?? []
-  const products = productsData?.data ?? []
+  const stores = (storesResponse?.data as DomainStore[]) ?? []
+  const products = (productsData?.data as DomainProduct[]) ?? []
 
   return (
     <div className="space-y-16">
@@ -127,9 +120,9 @@ export function LandingPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-lg">{formatPrice(product.price)}</span>
-                    <Badge variant={product.stock > 0 ? 'default' : 'destructive'}>
-                      {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                    <span className="font-bold text-lg">{formatPrice(product.price ?? 0)}</span>
+                    <Badge variant={(product.stock ?? 0) > 0 ? 'default' : 'destructive'}>
+                      {(product.stock ?? 0) > 0 ? `${product.stock} in stock` : 'Out of stock'}
                     </Badge>
                   </div>
                 </CardContent>
