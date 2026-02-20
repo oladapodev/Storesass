@@ -1,49 +1,46 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, ShoppingCart } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { axiosInstance } from '@/lib/axios-client'
 import { formatPrice } from '@/lib/utils'
-import type { Store, Product, PaginatedResponse } from '@/types/storefront'
+import { useGetStoresSlug } from '@/api/stores/stores'
+import { useGetStoresSlugProducts } from '@/api/products/products'
+import type { DomainStore } from '@/api/model/domainStore'
+import type { DomainProduct } from '@/api/model/domainProduct'
 
-type CartItem = Product & { quantity: number }
+type CartItem = DomainProduct & { quantity: number }
 
 export function StoreDetailPage() {
-  const { slug } = useParams<{ slug: string }>()
+  const { slug = '' } = useParams<{ slug: string }>()
   const [cart, setCart] = useState<CartItem[]>([])
   const [searchQuery, setSearchQuery] = useState('')
 
-  const { data: store, isLoading: storeLoading } = useQuery({
-    queryKey: ['stores', slug],
-    queryFn: () =>
-      axiosInstance.get<Store>(`/api/v1/stores/${slug}`).then((r) => r.data),
-    enabled: !!slug,
+  const { data: store, isLoading: storeLoading } = useGetStoresSlug(slug, {
+    query: {
+      enabled: !!slug,
+    },
   })
 
-  const { data: productsData } = useQuery({
-    queryKey: ['stores', slug, 'products'],
-    queryFn: () =>
-      axiosInstance
-        .get<PaginatedResponse<Product>>(`/api/v1/stores/${slug}/products`)
-        .then((r) => r.data),
-    enabled: !!slug,
+  const { data: productsResponse } = useGetStoresSlugProducts(slug, {}, {
+    query: {
+      enabled: !!slug,
+    },
   })
 
-  const products = productsData?.data ?? []
+  const products = (productsResponse?.data as DomainProduct[]) ?? []
 
   const filteredProducts = searchQuery
     ? products.filter(
         (p) =>
-          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+          (p.name ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (p.description ?? '').toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : products
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: DomainProduct) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id)
       if (existing) {
@@ -55,7 +52,10 @@ export function StoreDetailPage() {
     })
   }
 
-  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const cartTotal = cart.reduce(
+    (sum, item) => sum + (item.price ?? 0) * item.quantity,
+    0,
+  )
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0)
 
   if (storeLoading) {
@@ -135,19 +135,19 @@ export function StoreDetailPage() {
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle className="text-base">{product.name}</CardTitle>
-                    <Badge variant={product.stock > 0 ? 'secondary' : 'destructive'} className="shrink-0">
-                      {product.stock > 0 ? `${product.stock} left` : 'Sold out'}
+                    <Badge variant={(product.stock ?? 0) > 0 ? 'secondary' : 'destructive'} className="shrink-0">
+                      {(product.stock ?? 0) > 0 ? `${product.stock} left` : 'Sold out'}
                     </Badge>
                   </div>
                   <CardDescription className="line-clamp-2">{product.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="mt-auto">
                   <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold">{formatPrice(product.price)}</span>
+                    <span className="text-xl font-bold">{formatPrice(product.price ?? 0)}</span>
                     <Button
                       size="sm"
                       onClick={() => addToCart(product)}
-                      disabled={product.stock === 0}
+                      disabled={(product.stock ?? 0) === 0}
                       variant={cartItem ? 'secondary' : 'default'}
                     >
                       {cartItem ? `In cart (${cartItem.quantity})` : 'Add to cart'}

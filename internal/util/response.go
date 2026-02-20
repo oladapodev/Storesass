@@ -11,11 +11,11 @@ type PaginatedResponse struct {
 }
 
 func RespondWithSuccess(c *gin.Context, statusCode int, data interface{}) {
-	c.JSON(statusCode, gin.H{"success": true, "data": data})
+	c.JSON(statusCode, data)
 }
 
 func RespondWithError(c *gin.Context, statusCode int, message string) {
-	c.JSON(statusCode, gin.H{"success": false, "error": message})
+	c.JSON(statusCode, gin.H{"error": message})
 }
 
 // CalcTotalPages returns the number of pages needed to display total items at the given limit.

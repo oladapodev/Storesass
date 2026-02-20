@@ -21,10 +21,9 @@ dev-backend:
 dev-frontend:
 	cd web && pnpm dev
 
-## dev: Start both backend and frontend (requires two terminals)
+## dev: Start both backend and frontend concurrently with prefixes
 dev:
-	@echo "Run 'make dev-backend' and 'make dev-frontend' in separate terminals."
-	@echo "Or use: make dev-backend & make dev-frontend"
+	npx concurrently -n "BACKEND,FRONTEND" -c "green,blue" "$(AIR) -c .air.toml" "cd web && pnpm dev"
 
 ## build: Build the Go binary
 build:

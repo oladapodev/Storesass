@@ -1,20 +1,15 @@
-import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Store } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { axiosInstance } from '@/lib/axios-client'
-import type { Store as StoreType, PaginatedResponse } from '@/types/storefront'
+import { useGetStores } from '@/api/stores/stores'
+import type { DomainStore } from '@/api/model/domainStore'
 
 export function StoresPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['stores'],
-    queryFn: () =>
-      axiosInstance.get<PaginatedResponse<StoreType>>('/api/v1/stores').then((r) => r.data),
-  })
+  const { data: response, isLoading } = useGetStores({})
 
-  const stores = data?.data ?? []
+  const stores = (response?.data as DomainStore[]) ?? []
 
   return (
     <div className="space-y-8">
@@ -23,7 +18,7 @@ export function StoresPage() {
           <h1 className="text-3xl font-bold">Stores</h1>
           <p className="text-muted-foreground mt-1">Browse all active storefronts</p>
         </div>
-        <Badge variant="secondary">{data?.total ?? 0} stores</Badge>
+        <Badge variant="secondary">{response?.total ?? 0} stores</Badge>
       </div>
 
       {isLoading ? (
