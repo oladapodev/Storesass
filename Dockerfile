@@ -1,9 +1,12 @@
 # Frontend Build Stage
 FROM node:22-alpine AS frontend-builder
+WORKDIR /app
+# We need docs for codegen
+COPY docs/ ./docs/
+COPY web/ ./web/
 WORKDIR /app/web
-COPY web/package.json web/pnpm-lock.yaml ./
 RUN npm install -g pnpm && pnpm install
-COPY web/ .
+RUN pnpm run codegen
 RUN pnpm build
 
 # Build stage
