@@ -1,3 +1,11 @@
+# Frontend Build Stage
+FROM node:22-alpine AS frontend-builder
+WORKDIR /app/web
+COPY web/package.json web/pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install
+COPY web/ .
+RUN pnpm build
+
 # Build stage
 FROM golang:1.24-alpine AS builder
 
@@ -24,6 +32,7 @@ RUN apk add --no-cache ca-certificates tzdata
 
 COPY --from=builder /app/bin/api .
 COPY --from=builder /app/docs ./docs
+COPY --from=frontend-builder /app/web/dist ./web/dist
 
 EXPOSE 8080
 
