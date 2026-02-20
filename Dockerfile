@@ -5,7 +5,7 @@ WORKDIR /app
 COPY docs/ ./docs/
 COPY web/ ./web/
 WORKDIR /app/web
-RUN npm install -g pnpm && pnpm install
+RUN corepack enable && corepack prepare pnpm@9.15.2 --activate && pnpm install --frozen-lockfile
 RUN pnpm run codegen
 RUN pnpm build
 
