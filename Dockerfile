@@ -1,3 +1,14 @@
+# Frontend Build Stage
+FROM node:22-alpine AS frontend-builder
+WORKDIR /app
+# We need docs for codegen
+COPY docs/ ./docs/
+COPY web/ ./web/
+WORKDIR /app/web
+RUN npm install -g pnpm && pnpm install
+RUN pnpm run codegen
+RUN pnpm build
+
 # Build stage
 FROM golang:1.24-alpine AS builder
 
@@ -24,6 +35,7 @@ RUN apk add --no-cache ca-certificates tzdata
 
 COPY --from=builder /app/bin/api .
 COPY --from=builder /app/docs ./docs
+COPY --from=frontend-builder /app/web/dist ./web/dist
 
 EXPOSE 8080
 

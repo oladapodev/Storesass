@@ -77,6 +77,13 @@ func main() {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	// Serve frontend static files
+	router.StaticFile("/", "./web/dist/index.html")
+	router.Static("/assets", "./web/dist/assets")
+	router.NoRoute(func(c *gin.Context) {
+		c.File("./web/dist/index.html")
+	})
+
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.Port),
 		Handler: router,
