@@ -1,7 +1,7 @@
 // @title Storefront SaaS API
 // @version 1.0
 // @description A multi-tenant storefront SaaS backend API
-// @host localhost:8080
+// @host localhost:8000
 // @BasePath /api/v1
 package main
 
